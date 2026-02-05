@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Drone Light Show</title>
+<style>
+  html,body{
+    margin:0;
+    padding:0;
+    overflow:hidden;
+    background:radial-gradient(circle at top,#0b1d3a,#02040a);
+    height:100%;
+  }
+  canvas{display:block}
+  .hint{
+    position:fixed;
+    bottom:15px;
+    width:100%;
+    text-align:center;
+    color:#aaa;
+    font-size:14px;
+    user-select:none;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+<div class="hint">Click anywhere ✨</div>
+
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+function resize(){
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width  = innerWidth * dpr;
+  canvas.height = innerHeight * dpr;
+  canvas.style.width  = innerWidth + "px";
+  canvas.style.height = innerHeight + "px";
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+resize();
+addEventListener("resize",resize);
+
+const DRONES = 3000;
+const drones = [];
+const messages = [
+"Hi Gogo",
+  "Remember With Me",
+  "Ready ?!",
+  "Sure?! :)",
+  "First   20/5/2019",
+  "Then    9/7/2022",
+  "Then    8/11/2024",
+  "Finally  11/11/2024",
+  "Are You Smile Now ?!",
+  " Finally ",
+  "I Want You To Know",
+  "I Love You",
+  "You Are My World",
+  "Forever",
+  "❤️",
+  "Your Husband" ,
+  "S0ona"
+];
+let index = -1;
+
+class Drone{
+  constructor(){
+    this.x = innerWidth/2;
+    this.y = innerHeight/2;
+    this.tx = this.x;
+    this.ty = this.y;
+    this.r = 2;
+    this.speed = 0.08 + Math.random()*0.04;
+  }
+  update(){
+    this.x += (this.tx - this.x)*this.speed;
+    this.y += (this.ty - this.y)*this.speed;
+  }
+  draw(){
+    ctx.beginPath();
+    ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+    ctx.fillStyle="#8fd3ff";
+    ctx.fill();
+  }
+}
+
+function init(){
+  drones.length = 0;
+  for(let i=0;i<DRONES;i++) drones.push(new Drone());
+  circle();
+}
+
+function circle(){
+  const R = Math.min(innerWidth,innerHeight)/3;
+  drones.forEach((d,i)=>{
+    const a = i/DRONES*Math.PI*2;
+    d.tx = innerWidth/2 + Math.cos(a)*R;
+    d.ty = innerHeight/2 + Math.sin(a)*R;
+  });
+}
+
+
+
+function textPoints(text){
+  const t = document.createElement("canvas");
+  const c = t.getContext("2d");
+  t.width = innerWidth;
+  t.height = innerHeight;
+
+  c.fillStyle="#fff";
+  c.textAlign="center";
+  c.textBaseline="middle";
+  c.font="bold 150px Arial";
+  c.fillText(text,innerWidth/2,innerHeight/2);
+
+  const data = c.getImageData(0,0,t.width,t.height).data;
+  const pts=[];
+  for(let y=0;y<t.height;y+=12){
+    for(let x=0;x<t.width;x+=2){
+      if(data[(y*t.width+x)*4+3]>150) pts.push({x,y});
+    }
+  }
+  return pts;
+}
+
+
+
+
+
+
+
+
+function show(text){
+  const pts = textPoints(text);
+  drones.forEach((d,i)=>{
+    const p = pts[i%pts.length];
+    d.tx = p.x;
+    d.ty = p.y;
+  });
+}
+
+canvas.onclick = ()=>{
+  index++;
+  if(index>=messages.length){
+    index=-1;
+    circle();
+  }else show(messages[index]);
+};
+
+function animate(){
+  ctx.clearRect(0,0,innerWidth,innerHeight);
+  drones.forEach(d=>{d.update();d.draw();});
+  requestAnimationFrame(animate);
+}
+
+init();
+animate();
+</script>
+</body>
+</html>
